@@ -15,6 +15,9 @@
 
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
 
+UINT ID_LOCK_SUNSHINE = 1;
+CPlantsVsZombiesHelperDlg* mainDlg = NULL;
+
 class CAboutDlg : public CDialogEx
 {
 public:
@@ -65,7 +68,9 @@ BEGIN_MESSAGE_MAP(CPlantsVsZombiesHelperDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
-	ON_BN_CLICKED(IDC_CHECK1, &CPlantsVsZombiesHelperDlg::OnBnClickedCheck1)
+	ON_BN_CLICKED(IDC_CHECK_CD, &CPlantsVsZombiesHelperDlg::OnBnClickedCheck1)
+	ON_BN_CLICKED(IDC_BUTTON_SUNSHINE, &CPlantsVsZombiesHelperDlg::OnBnClickedButtonSunshine)
+	ON_BN_CLICKED(IDC_CHECK_SUNSHINE, &CPlantsVsZombiesHelperDlg::OnBnClickedCheckSunshine)
 END_MESSAGE_MAP()
 
 
@@ -101,7 +106,7 @@ BOOL CPlantsVsZombiesHelperDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO: 在此添加额外的初始化代码
-
+	mainDlg = this;
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
@@ -168,7 +173,7 @@ void findGameInfo() {
 WORD defaultCdValue = 0;
 
 void CPlantsVsZombiesHelperDlg::OnBnClickedCheck1() {
-	CButton * checkCD = (CButton *)GetDlgItem(IDC_CHECK1);
+	CButton * checkCD = (CButton *)GetDlgItem(IDC_CHECK_CD);
 	findGameInfo();
 
 	SIZE_T readSize;
@@ -179,6 +184,8 @@ void CPlantsVsZombiesHelperDlg::OnBnClickedCheck1() {
 			checkCD->SetCheck(FALSE);
 			return;
 		}
+		if (defaultCdValue == 0x9090)
+			defaultCdValue = 0x17d4;
 	}
 
 	WORD cd;
@@ -193,4 +200,41 @@ void CPlantsVsZombiesHelperDlg::OnBnClickedCheck1() {
 }
 
 
+void CPlantsVsZombiesHelperDlg::changeSunShine() {
+	CString countStr;
+	GetDlgItemText(IDC_EDIT_SUNSHINE, countStr);
+	DWORD count = _ttoi(countStr);
+	//读取阳光数量
+	findGameInfo();
+	DWORD sunshine = 0;
+	DWORD readSize = 0;
+	DWORD writeSize = 0;
 
+	ReadProcessMemory(gameHandle, GAME_BASE_ADRESS, &sunshine, sizeof(DWORD), &readSize);
+	if (sizeof(DWORD) == readSize) {
+		sunshine += 0x868;
+		ReadProcessMemory(gameHandle, (LPCVOID)sunshine, &sunshine, sizeof(DWORD), &readSize);
+		if (sizeof(DWORD) == readSize) {
+			sunshine += 0x5578;
+			WriteProcessMemory(gameHandle, (LPVOID)sunshine, &count, sizeof(DWORD), &writeSize);
+		}
+	}
+
+}
+
+
+void CPlantsVsZombiesHelperDlg::OnBnClickedButtonSunshine() {
+	changeSunShine();
+}
+
+void CALLBACK lockSunshine(HWND hHnd, UINT uInt, UINT_PTR uIntPtr, DWORD dWord) {
+	mainDlg->changeSunShine();
+}
+
+void CPlantsVsZombiesHelperDlg::OnBnClickedCheckSunshine() {
+	if (IsDlgButtonChecked(IDC_CHECK_SUNSHINE)) {
+		SetTimer(ID_LOCK_SUNSHINE, 1000, lockSunshine);
+	} else {
+		KillTimer(ID_LOCK_SUNSHINE);
+	}
+}

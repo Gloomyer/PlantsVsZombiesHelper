@@ -5,12 +5,12 @@ MFC project
 
 ### function ###
 #### Realization ####
-1.Ignore CD
+1. Ignore CD
+2. Change Sunshine
 
 #### TODO ####
-1. Change Sunshine
-2. Change money
-3. Kill all the monsters
+1. Change money
+2. Kill all the monsters
 
 ## Game Download ##
 

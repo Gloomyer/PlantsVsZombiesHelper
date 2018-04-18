@@ -32,4 +32,9 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnBnClickedCheck1();
+	afx_msg void OnBnClickedButtonSunshine();
+
+public:
+	void changeSunShine();
+	afx_msg void OnBnClickedCheckSunshine();
 };
