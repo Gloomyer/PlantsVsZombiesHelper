@@ -1,0 +1,8 @@
+/.vs
+/ipch
+/Debug
+/PlantsVsZombiesHelper/Debug
+/PlantsVsZombiesHelper/x64
+/x64
+*.VC.db
+*.VC.VC.opendb
