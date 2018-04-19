@@ -6,7 +6,7 @@ MFC project
 Helper.exe in the release folder
 
 ### function ###
-#### Realization ####
+##### Realization #####
 1. Ignore CD
 2. Change Sunshine
 3. Change money
