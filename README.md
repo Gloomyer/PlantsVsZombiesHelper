@@ -11,7 +11,7 @@ Helper.exe in the release folder
 2. Change Sunshine
 3. Change money
 4. Kill all the monsters
-5. Never No Pause Game
+5. Never don't pause game
 
 ## Demo ##
 ![](demo.gif)
