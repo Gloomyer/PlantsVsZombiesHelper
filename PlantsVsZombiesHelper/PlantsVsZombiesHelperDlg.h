@@ -36,5 +36,11 @@ public:
 
 public:
 	void changeSunShine();
+	void changeMoney();
+	void changePauseStatus();
 	afx_msg void OnBnClickedCheckSunshine();
+	afx_msg void OnBnClickedButtonClearAll();
+	afx_msg void OnBnClickedButtonMoney();
+	afx_msg void OnBnClickedCheckMoney();
+	afx_msg void OnBnClickedCheckIsPause();
 };

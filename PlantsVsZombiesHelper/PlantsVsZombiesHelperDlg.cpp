@@ -16,6 +16,8 @@
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
 
 UINT ID_LOCK_SUNSHINE = 1;
+UINT ID_LOCK_MONEY = 2;
+UINT ID_LOCK_IS_PAUSE_GAME = 3;
 CPlantsVsZombiesHelperDlg* mainDlg = NULL;
 
 class CAboutDlg : public CDialogEx
@@ -71,6 +73,10 @@ BEGIN_MESSAGE_MAP(CPlantsVsZombiesHelperDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_CHECK_CD, &CPlantsVsZombiesHelperDlg::OnBnClickedCheck1)
 	ON_BN_CLICKED(IDC_BUTTON_SUNSHINE, &CPlantsVsZombiesHelperDlg::OnBnClickedButtonSunshine)
 	ON_BN_CLICKED(IDC_CHECK_SUNSHINE, &CPlantsVsZombiesHelperDlg::OnBnClickedCheckSunshine)
+	ON_BN_CLICKED(IDC_BUTTON_CLEAR_ALL, &CPlantsVsZombiesHelperDlg::OnBnClickedButtonClearAll)
+	ON_BN_CLICKED(IDC_BUTTON_MONEY, &CPlantsVsZombiesHelperDlg::OnBnClickedButtonMoney)
+	ON_BN_CLICKED(IDC_CHECK_MONEY, &CPlantsVsZombiesHelperDlg::OnBnClickedCheckMoney)
+	ON_BN_CLICKED(IDC_CHECK_IS_PAUSE, &CPlantsVsZombiesHelperDlg::OnBnClickedCheckIsPause)
 END_MESSAGE_MAP()
 
 
@@ -233,8 +239,123 @@ void CALLBACK lockSunshine(HWND hHnd, UINT uInt, UINT_PTR uIntPtr, DWORD dWord) 
 
 void CPlantsVsZombiesHelperDlg::OnBnClickedCheckSunshine() {
 	if (IsDlgButtonChecked(IDC_CHECK_SUNSHINE)) {
-		SetTimer(ID_LOCK_SUNSHINE, 1000, lockSunshine);
+		SetTimer(ID_LOCK_SUNSHINE, 3000, lockSunshine);
 	} else {
 		KillTimer(ID_LOCK_SUNSHINE);
+	}
+}
+
+void CPlantsVsZombiesHelperDlg::changeMoney() {
+	CString countStr;
+	GetDlgItemText(IDC_EDIT_MONEY, countStr);
+	DWORD count = _ttoi(countStr);
+	//读取金币数量
+	findGameInfo();
+	DWORD money = 0;
+	DWORD readSize = 0;
+	DWORD writeSize = 0;
+
+	ReadProcessMemory(gameHandle, GAME_BASE_ADRESS, &money, sizeof(DWORD), &readSize);
+	if (sizeof(DWORD) == readSize) {
+		money += 0x950;
+		ReadProcessMemory(gameHandle, (LPCVOID)money, &money, sizeof(DWORD), &readSize);
+		if (sizeof(DWORD) == readSize) {
+			money += 0x50;
+			WriteProcessMemory(gameHandle, (LPVOID)money, &count, sizeof(DWORD), &writeSize);
+		}
+	}
+
+}
+
+void CALLBACK lockMoney(HWND hHnd, UINT uInt, UINT_PTR uIntPtr, DWORD dWord) {
+	mainDlg->changeMoney();
+}
+
+void CPlantsVsZombiesHelperDlg::OnBnClickedButtonMoney() {
+	changeMoney();
+}
+
+
+void CPlantsVsZombiesHelperDlg::OnBnClickedCheckMoney() {
+	if (IsDlgButtonChecked(IDC_CHECK_MONEY)) {
+		SetTimer(ID_LOCK_MONEY, 3000, lockMoney);
+	} else {
+		KillTimer(ID_LOCK_MONEY);
+	}
+}
+
+
+_declspec(naked) void installBomb(DWORD args[]) {
+	__asm {
+		mov ebx, ss:[esp + 4]
+		mov ecx, [ebx]
+		mov edx, [ebx + 4]
+		push - 1
+		push 2
+		push ecx
+		mov eax, dword ptr ds : [0x7794f8]
+		mov eax, dword ptr ds : [eax + 0x868]
+		push eax
+		mov eax, edx
+		mov edx, 0x422610
+		CALL edx
+		ret
+	}
+}
+
+
+
+void CPlantsVsZombiesHelperDlg::OnBnClickedButtonClearAll() {
+	CButton* clearAll = (CButton*)GetDlgItem(IDC_BUTTON_CLEAR_ALL);
+	clearAll->EnableWindow(FALSE);
+	findGameInfo();
+	DWORD writeSize;
+	LPVOID farCall = VirtualAllocEx(gameHandle, NULL, 0x8FFF, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+	LPVOID params = VirtualAllocEx(gameHandle, NULL, sizeof(DWORD) * 2, MEM_COMMIT, PAGE_READWRITE);
+	WriteProcessMemory(gameHandle, farCall, installBomb, 0x8FFF, &writeSize);
+	TRACE("\n addr=%x \n", farCall);
+	for (size_t x = 0; x < 9; x++) {
+		for (size_t y = 0; y < 5; y++) {
+			DWORD xy[2];
+			xy[0] = x;
+			xy[1] = y;
+			WriteProcessMemory(gameHandle, params, xy, sizeof(DWORD) * 2, &writeSize);
+			HANDLE th = CreateRemoteThread(gameHandle, NULL, NULL, (LPTHREAD_START_ROUTINE)farCall, params, NULL, NULL);
+			WaitForSingleObject(th, 0xFFFFFFFF);
+		}
+	}
+	VirtualFreeEx(gameHandle, farCall, 0x8FFF, MEM_DECOMMIT);
+	VirtualFreeEx(gameHandle, params, sizeof(int) * 2, MEM_DECOMMIT);
+	clearAll->EnableWindow(TRUE);
+}
+
+void CPlantsVsZombiesHelperDlg::changePauseStatus() {
+	findGameInfo();
+	DWORD isPause = 0;
+	DWORD readSize = 0;
+	DWORD writeSize = 0;
+
+	ReadProcessMemory(gameHandle, GAME_BASE_ADRESS, &isPause, sizeof(DWORD), &readSize);
+	if (sizeof(DWORD) == readSize) {
+		isPause = isPause + 0x868;
+		ReadProcessMemory(gameHandle, (LPCVOID)isPause, &isPause, sizeof(DWORD), &readSize);
+		if (sizeof(DWORD) == readSize) {
+			isPause += 0x17c;
+			BYTE b[] = {0};
+			WriteProcessMemory(gameHandle, (LPVOID)isPause, b, sizeof(b), &writeSize);
+		}
+	}
+
+}
+
+void CALLBACK lockIsPauseGame(HWND hHnd, UINT uInt, UINT_PTR uIntPtr, DWORD dWord) {
+	mainDlg->changePauseStatus();
+}
+
+void CPlantsVsZombiesHelperDlg::OnBnClickedCheckIsPause() {
+	if (IsDlgButtonChecked(IDC_CHECK_IS_PAUSE)) {
+		SetTimer(ID_LOCK_IS_PAUSE_GAME, 1000, lockIsPauseGame);
+	} else {
+		KillTimer(ID_LOCK_IS_PAUSE_GAME);
 	}
 }

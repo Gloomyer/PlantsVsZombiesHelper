@@ -3,14 +3,18 @@ PlantsVsZombies Helper
 
 MFC project
 
+Helper.exe in the release folder
+
 ### function ###
 #### Realization ####
 1. Ignore CD
 2. Change Sunshine
+3. Change money
+4. Kill all the monsters
+5. Never No Pause Game
 
-#### TODO ####
-1. Change money
-2. Kill all the monsters
+## Demo ##
+![](demo.gif)
 
 ## Game Download ##
 
