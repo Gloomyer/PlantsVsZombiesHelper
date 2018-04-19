@@ -77,6 +77,7 @@ BEGIN_MESSAGE_MAP(CPlantsVsZombiesHelperDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_MONEY, &CPlantsVsZombiesHelperDlg::OnBnClickedButtonMoney)
 	ON_BN_CLICKED(IDC_CHECK_MONEY, &CPlantsVsZombiesHelperDlg::OnBnClickedCheckMoney)
 	ON_BN_CLICKED(IDC_CHECK_IS_PAUSE, &CPlantsVsZombiesHelperDlg::OnBnClickedCheckIsPause)
+	ON_BN_CLICKED(IDC_CHECK_INVINCIBLE, &CPlantsVsZombiesHelperDlg::OnBnClickedCheckInvincible)
 END_MESSAGE_MAP()
 
 
@@ -358,4 +359,24 @@ void CPlantsVsZombiesHelperDlg::OnBnClickedCheckIsPause() {
 	} else {
 		KillTimer(ID_LOCK_IS_PAUSE_GAME);
 	}
+}
+
+DWORD defaultInvincibleValue = NULL;
+void CPlantsVsZombiesHelperDlg::OnBnClickedCheckInvincible() {
+	findGameInfo();
+
+	SIZE_T readSize;
+	SIZE_T writeSize;
+	if (defaultInvincibleValue == NULL) {
+		ReadProcessMemory(gameHandle, INVINCIBLE_BASE_ADRESS, &defaultInvincibleValue, 4, &readSize);
+	}
+
+	DWORD invincible;
+	if (IsDlgButtonChecked(IDC_CHECK_INVINCIBLE)) {
+		invincible = 0x90909090;
+	} else {
+		invincible = defaultInvincibleValue;
+	}
+
+	WriteProcessMemory(gameHandle, (LPVOID)INVINCIBLE_BASE_ADRESS, &invincible, 4, &writeSize);
 }

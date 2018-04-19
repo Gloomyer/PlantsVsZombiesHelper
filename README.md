@@ -12,6 +12,7 @@ Helper.exe in the release folder
 3. Change money
 4. Kill all the monsters
 5. Never No Pause Game
+6. Invincible
 
 ## Demo ##
 ![](demo.gif)

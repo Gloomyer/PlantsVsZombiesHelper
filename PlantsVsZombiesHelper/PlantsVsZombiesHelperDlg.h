@@ -43,4 +43,5 @@ public:
 	afx_msg void OnBnClickedButtonMoney();
 	afx_msg void OnBnClickedCheckMoney();
 	afx_msg void OnBnClickedCheckIsPause();
+	afx_msg void OnBnClickedCheckInvincible();
 };
